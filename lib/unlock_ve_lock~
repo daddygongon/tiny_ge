@@ -1,0 +1,15 @@
+#!/bin/env ruby
+VE_SUBMIT_JOBS_FILE = File.join(ENV['HOME'],".ve_submit_jobs.txt")
+pid = ARGV[0] || 1234
+pid = pid.to_i
+lines = File.readlines(VE_SUBMIT_JOBS_FILE)
+lines.each_with_index do |line, i|
+  data = line.match(/\s+(\d+):\s+(\w+):\s+(.+)/)
+  if data[1].to_i == pid
+    line.gsub!(' running', 'finished')
+    File.write(VE_SUBMIT_JOBS_FILE, lines.join)
+    break 
+  end
+end
+
+exit 0 # return true

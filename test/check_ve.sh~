@@ -1,0 +1,10 @@
+#!/bin/sh
+
+while ! ~/bin/check_ve_lock $$; do
+  sleep 10
+done
+echo "hello world"
+
+sleep 30
+
+~/bin/unlock_ve_lock $$

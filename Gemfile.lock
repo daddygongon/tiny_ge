@@ -1,0 +1,38 @@
+PATH
+  remote: .
+  specs:
+    tiny_ge (0.1.0)
+      colorize
+      command_line
+      thor
+      yaml
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ansi (1.5.0)
+    builder (3.2.4)
+    colorize (0.8.1)
+    command_line (2.0.1)
+    minitest (5.14.3)
+    minitest-reporters (1.4.3)
+      ansi
+      builder
+      minitest (>= 5.0)
+      ruby-progressbar
+    rake (12.3.3)
+    ruby-progressbar (1.11.0)
+    thor (1.1.0)
+    yaml (0.1.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  minitest (~> 5.0)
+  minitest-reporters
+  rake (~> 12.0)
+  tiny_ge!
+
+BUNDLED WITH
+   2.1.4

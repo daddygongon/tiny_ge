@@ -1,0 +1,88 @@
+#+qiita_private: 79491472592ae821dcdc
+#+OPTIONS: ^:{}
+#+STARTUP: indent nolineimages
+#+TITLE: linuxでprocessの排他処理
+#+AUTHOR: Shigeto R. Nishitani
+#+EMAIL:     (concat "shigeto_nishitani@mac.com")
+#+LANGUAGE:  jp
+# +OPTIONS:   H:4 toc:t num:2
+#+OPTIONS:   toc:nil
+#+TAG: Linux, 排他処理
+#+TWITTER: off
+# +SETUPFILE: ~/.emacs.d/org-mode/theme-readtheorg.setup
+
+* intro
+necのvector engineでprocessを排他処理する．
+
+necのVector Engineでmpirunを投げるとそのまま行っちゃう．
+そこでlock fileによる排他処理を提案されたが，そのままだと順序が保証できない．
+そこんとこちょっと改善
+
+* 方針
+統一ファイルを用意して，そこにveにsubmitしたjobのstatusを記録し，
+そこから排他処理と実行を行う．
+
+* 実装
+** 最初の提案
+例えば、ロックファイルを作るのはどうでしょうか？
+#+begin_src shell
+#!/bin/sh
+
+while [ -f "${HOME}/.running" ]; do
+  sleep 10
+done
+touch "${HOME}/.running"
+
+[...]
+mpirun -np 8 vasp_std 1> stdout 2> stderr
+
+rm "${HOME}/.running"
+#+end_src
+これをバックグラウンドで実行すればVEに複数ジョブが一度に入ることはなくなります。
+
+- 実行順は保証されません。
+
+** 最初の実装
+home directory配下にファイルを用意してそこにstatus([finished, running, waiting])を
+書き込んでそれを参照してjobを実行する．
+
+それぞれの投入ジョブのshellは次の通り．
+#+name: check_ve.sh
+#+include: "./test/check_ve.sh" src sh
+
+実際の稼働shellは以下の二つ．
+#+name: check_ve_lock
+#+include: "./lib/check_ve_lock" src ruby
+
+#+name: unlock_ve_lock
+#+include: "./lib/unlock_ve_lock" src ruby
+動いた．
+#+begin_example
+   12753:   finished: /home/bob/bin: 2021-01-26 20:45:56 +0900
+   13209:   finished: /home/bob/bin: 2021-01-26 20:46:05 +0900
+   13407:   finished: /home/bob/bin: 2021-01-26 20:46:14 +0900
+    8512:   finished: /home/bob/frenkel_aurora/al_110_lambda_05: 2021-01-26 23:37:06 +0900
+   20683:    running: /home/bob/frenkel_aurora/al_110_lambda_075: 2021-01-26 23:48:25 +0900
+#+end_example
+* 改善
+1. テキストにして置いておくより，yamlかjsonが良さそう．
+   見にくいけれど，間違いがないだろうから．
+1. qsubを常駐させて，そこにsubmitするという手はないか？
+   1. 常駐させる必要はなくて，qsubに対してve_lock用のshellを常駐させればいい．
+   1. /tmpにおく？
+1. 走ってないゾンビをチェックする必要あり
+1. qstat, qdelが必要
+
+
+
+gem化するのが良さそう．そこでは
+: exeに個別のコマンドを用意するが，実体は同じclassの違う振る舞い
+とすればいい．
+
+- qsub -> TGE.qsub(pid, shell_path)
+- qfinish -> TGE.qfinish(pid)
+- qstat -> TGE.qstat(line = 10)
+- qdel -> TGE.qdel(pid)
+なんかのmodule methodを用意して，それぞれのコマンドを実行させればいい．
+それにはThorなんかのCLIはいらない．
+
