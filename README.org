@@ -65,24 +65,22 @@ home directory配下にファイルを用意してそこにstatus([finished, run
    20683:    running: /home/bob/frenkel_aurora/al_110_lambda_075: 2021-01-26 23:48:25 +0900
 #+end_example
 * 改善
-1. テキストにして置いておくより，yamlかjsonが良さそう．
-   見にくいけれど，間違いがないだろうから．
-1. qsubを常駐させて，そこにsubmitするという手はないか？
+- [X] テキストにして置いておくより，yamlかjsonが良さそう．
+    見にくいけれど，間違いがないだろうから．
+- [ ] qsubを常駐させて，そこにsubmitするという手はないか？
    1. 常駐させる必要はなくて，qsubに対してve_lock用のshellを常駐させればいい．
    1. /tmpにおく？
-1. 走ってないゾンビをチェックする必要あり
-1. qstat, qdelが必要
+- [ ] 走ってないゾンビをチェックする必要あり
+- [X] qstat, qdelが必要
 
+- [X] gem化するのが良さそう．そこでは
+     : exeに個別のコマンドを用意するが，実体は同じclassの違う振る舞い
+     とすればいい．
 
-
-gem化するのが良さそう．そこでは
-: exeに個別のコマンドを用意するが，実体は同じclassの違う振る舞い
-とすればいい．
-
-- qsub -> TGE.qsub(pid, shell_path)
-- qfinish -> TGE.qfinish(pid)
-- qstat -> TGE.qstat(line = 10)
-- qdel -> TGE.qdel(pid)
+- [ ] qsub -> TGE.qsub(pid, shell_path)
+- [ ] qfinish -> TGE.qfinish(pid)
+- [X] qstat -> TGE.qstat(line = 10)
+- [ ] qdel -> TGE.qdel(pid)
 なんかのmodule methodを用意して，それぞれのコマンドを実行させればいい．
 それにはThorなんかのCLIはいらない．
 

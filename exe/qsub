@@ -2,5 +2,5 @@
 
 require "tiny_ge"
 
-TinyGE::MyCLI.start(ARGV)
+TGE.new.qsub(ARGV)
 

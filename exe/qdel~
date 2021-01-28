@@ -2,6 +2,5 @@
 
 require "tiny_ge"
 
-TGE.new.qstat(ARGV[0].to_i)
-
+TGE::qstat
 

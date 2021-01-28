@@ -5,8 +5,8 @@ require 'command_line/global'
 
 class TGETest < Minitest::Test
   def setup
-    command_line "touch #{VE_TEST_FILE}"
     @pid = $$
+    @tge = TGE.new
   end
   def test_it_has_a_version_number
     refute_nil TGE::VERSION
@@ -17,27 +17,27 @@ class TGETest < Minitest::Test
   end
 
   def test_qsub_job
-    TGE::qsub(@pid)
-    assert TGE.pid_on_file(@pid)
-    TGE::qdel(@pid)
+    @tge.qsub(@pid)
+    assert @tge.pid_on_file(@pid)
+    @tge.qdel(@pid)
   end
 
   def test_qsub_running
-    TGE::qsub(14709)
-    assert_equal TGE.pid_on_file(14709), 'running'
+    @tge.qsub(14709)
+    assert_equal @tge.pid_on_file(14709), 'running'
   end
 
   def test_qdel
-    TGE::qsub(@pid)
-    TGE::qdel(@pid)
-    assert !TGE.pid_on_file(@pid)
+    @tge.qsub(@pid)
+    @tge.qdel(@pid)
+    assert !@tge.pid_on_file(@pid)
   end
 
   def test_q_finish
-    TGE::qfinish(9256)
+    @tge.qfinish(9256)
   end
 
   def test_read_qstat
-    TGE::qstat(0)
+    @tge.qstat(0)
   end
 end
