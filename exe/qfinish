@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require "tiny_ge"
+
+TGE.new.qfinish(ARGV[0].to_i)
+

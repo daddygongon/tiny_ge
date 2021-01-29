@@ -64,6 +64,41 @@ home directory配下にファイルを用意してそこにstatus([finished, run
     8512:   finished: /home/bob/frenkel_aurora/al_110_lambda_05: 2021-01-26 23:37:06 +0900
    20683:    running: /home/bob/frenkel_aurora/al_110_lambda_075: 2021-01-26 23:48:25 +0900
 #+end_example
+** rubyからbackgroundでの実行
+- [[https://stackoverflow.com/questions/11982057/how-can-i-trigger-a-shell-script-and-run-in-background-async-in-ruby][How can I trigger a shell script and run in background (async) in Ruby?]]
+
+に書かれている手法で，
+#+begin_src ruby
+    shell_file = "./test.sh"
+    File.write(shell_file, "sleep 10\necho \"hoge\"\n")
+    command_line("chmod u+x #{shell_file}")
+    p pid = spawn(shell_file, :out => "test.out", :err => "test.err")
+    Process.detach(pid)
+#+end_src
+にて実装．
+
+結果は，
+#+begin_example
+> ls -la --time-style=full-iso test*
+-rw-r--r--. 1 bob bob   0 2021-01-29 12:12:29.572812565 +0900 test.err
+-rw-r--r--. 1 bob bob   5 2021-01-29 12:12:39.575812241 +0900 test.out
+-rwxrw-r--. 1 bob bob  21 2021-01-29 12:12:29.571812565 +0900 test.sh*
+-rw-rw-r--. 1 bob bob 155 2021-01-28 10:01:57.380865004 +0900 test_helper.rb
+#+end_example
+となり，10秒後に書き込まれているのを確認．outファイルは実行直後に出来てたみたい．
+chmodが嫌ですね．
+でも，変なpermissionいらないからuser directoryで実行するshellを生成するのが良さそう．
+
+前回これを実装しようとして，child processとかで悩んだ．
+
+この検索過程で，gemでqueueシステムをいくつも発見．
+railsとかtest用にいくつも開発されている．
+- [[https://www.ruby-toolbox.com/categories/Background_Jobs]]
+- [[https://blog.appsignal.com/2019/04/02/background-processing-system-in-ruby.html][Ruby Magic Learning by building, a Background Processing System in Ruby]]
+ただ，難しそう．．．
+
+
+
 * 改善
 - [X] テキストにして置いておくより，yamlかjsonが良さそう．
     見にくいけれど，間違いがないだろうから．

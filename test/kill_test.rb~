@@ -1,0 +1,6 @@
+require 'command_line/global'
+
+res = command_line('ps -ux|grep test.sh')
+res.stdout.split("\n").each do |line|
+  puts line
+end

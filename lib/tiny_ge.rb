@@ -1,6 +1,7 @@
 require "tiny_ge/version"
 require 'yaml'
 require 'thor'
+require 'command_line/global'
 
 #VE_SUBMIT_JOBS_FILE = File.join(ENV['HOME'],".ve_submit_jobs.txt")
 VE_TEST_FILE = File.join(ENV['HOME'],".tge_test_jobs.txt")
@@ -13,6 +14,21 @@ class TGE
   def add_job(pid, shell_path)
     @data << {pid: pid, status: 'waiting', shell_path: shell_path, submit: Time.now, start: nil}
     File.write(VE_TEST_FILE, YAML.dump(@data))
+    p shell_path
+    shell_file = "./test.sh"
+    shell_script = <<-EOS
+#!/bin/sh
+while ! qsub #{pid}; do
+  sleep 10
+done
+echo "hello world"
+sleep 30
+  qfinish #{pid}
+    EOS
+    File.write(shell_file, shell_script)
+    command_line("chmod u+x #{shell_file}")
+    p pid = spawn(shell_file, :out => "test.out", :err => "test.err")
+    Process.detach(pid)
     puts "#{pid} is added on the queue."
   end
 

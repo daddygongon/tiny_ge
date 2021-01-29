@@ -2,5 +2,18 @@
 
 require "tiny_ge"
 
-TGE.new.qsub(ARGV)
+pid = $$
+file = ARGV[0]
+accepted_formats = ['.sh']
+unless accepted_formats.include? File.extname(file)
+  pid = file.to_i
+end
+shell_path = File.join(Dir.pwd, ARGV[0])
+
+res = TGE.new.qsub(pid, shell_path)
+if res==0
+  exit 0
+else
+  exit 1
+end
 
