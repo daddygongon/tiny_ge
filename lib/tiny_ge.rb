@@ -23,7 +23,7 @@ while ! qsub #{pid}; do
 done
 echo "hello world"
 sleep 30
-  qfinish #{pid}
+qfinish #{pid}
     EOS
     File.write(shell_file, shell_script)
     command_line("chmod u+x #{shell_file}")
