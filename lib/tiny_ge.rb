@@ -21,14 +21,14 @@ class TGE
 while ! qsub #{pid}; do
   sleep 10
 done
-echo "hello world"
-sleep 30
+
+sh #{shell_path}
+
 qfinish #{pid}
-    EOS
+EOS
     File.write(shell_file, shell_script)
-    command_line("chmod u+x #{shell_file}")
-    p pid = spawn(shell_file, :out => "test.out", :err => "test.err")
-    Process.detach(pid)
+    p pid0 = spawn("sh #{shell_file}", :out => "test.out", :err => "test.err")
+    Process.detach(pid0)
     puts "#{pid} is added on the queue."
   end
 
@@ -58,6 +58,9 @@ qfinish #{pid}
       if job[:pid] == pid
         if job[:status] == 'waiting' and i == last_finished + 1
           change_job_status(pid, 'running')
+          return true
+        end
+        if job[:status] == 'running'
           return true
         end
         return false

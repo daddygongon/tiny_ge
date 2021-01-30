@@ -99,10 +99,10 @@ railsとかtest用にいくつも開発されている．
 
 
 
-* 改善
+* 改善案
 - [X] テキストにして置いておくより，yamlかjsonが良さそう．
     見にくいけれど，間違いがないだろうから．
-- [ ] qsubを常駐させて，そこにsubmitするという手はないか？
+- [X] qsubを常駐させて，そこにsubmitするという手はないか？
    1. 常駐させる必要はなくて，qsubに対してve_lock用のshellを常駐させればいい．
    1. /tmpにおく？
 - [ ] 走ってないゾンビをチェックする必要あり
@@ -112,15 +112,68 @@ railsとかtest用にいくつも開発されている．
      : exeに個別のコマンドを用意するが，実体は同じclassの違う振る舞い
      とすればいい．
 
-- [ ] qsub -> TGE.qsub(pid, shell_path)
-- [ ] qfinish -> TGE.qfinish(pid)
+- [X] qsub -> TGE.qsub(pid, shell_path)
+- [X] qfinish -> TGE.qfinish(pid)
 - [X] qstat -> TGE.qstat(line = 10)
-- [ ] qdel -> TGE.qdel(pid)
+- [X] qdel -> TGE.qdel(pid)
 なんかのmodule methodを用意して，それぞれのコマンドを実行させればいい．
 それにはThorなんかのCLIはいらない．
+
+** 使い方
+SGEのコマンドに似せて作成．
+
+#+begin_example
+> tge --help
+
+qsub [shell]        # submit job
+qstat               # show queue stats
+qdel [pid]          # delete job
+qfinish             # use internal
+#+end_example
+
+shellを指定してqsubすると以下のtest.shが作成される．
+#+begin_src shell
+> cat test.sh
+#!/bin/sh
+while ! qsub 23520; do
+  sleep 10
+done
+
+sh /home/bob/frenkel_aurora/lambda_025/ve_lock_vasp.sh
+
+qfinish 23520
+#+end_src
+
+defaultでは~/.tge_test_jobs.txtにqueueが保存されている．
+qstatで'running'などの状況を確認．
 
 * テスト
 - [[https://github.com/minitest-reporters/minitest-reporters][minitest-reporters]]
 
+** test_helperの呼び方
+rake testでやるときと，
+: ruby tiny_ge_test.rb -n test_qsub
+とかでやるときでtest_helperが呼ばれない時がある．
+
+: require_relative "./test_helper"
+
+とすると両方で呼ばれる．
+
+#+name: test_helper.rb
+#+begin_ruby
+$LOAD_PATH.unshift(File.expand_path('../../lib', __FILE__))
+#require 'test/unit'
+require "tiny_ge"
+
+require "minitest/autorun"
+require "minitest/reporters"
+Minitest::Reporters.use!
+#+end_ruby
 - qconf
 - かきこ
+** kill zombie
+開発の段階でzombie processの大量発生が起こった．
+
+:  ps -xal |grep test.sh
+とかで親プロセスまで見ることができて．殺せる．
+第４出力が親プロセス．

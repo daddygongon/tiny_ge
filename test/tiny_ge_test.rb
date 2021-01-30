@@ -1,4 +1,4 @@
-require "test_helper"
+require_relative  "./test_helper"
 require 'command_line/global'
 
 #VE_TEST_FILE = File.join(ENV['HOME'],".tge_test_jobs.txt")
@@ -14,6 +14,17 @@ class TGETest < Minitest::Test
 
   def test_it_has_the_jobs_file
     assert File.exist?(VE_TEST_FILE)
+  end
+
+  def test_qsub_pid_not_on_file_return_false_add_new_on_file
+    pid = 1111
+    assert !@tge.qsub(pid)
+    assert @tge.pid_on_file(pid)
+    assert @tge.qdel(pid)
+  end
+
+  def test_qsub_pid_waiting_rn_false
+    assert !@tge.qsub(1)
   end
 
   def test_qsub_job

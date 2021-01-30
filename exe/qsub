@@ -11,7 +11,8 @@ end
 shell_path = File.join(Dir.pwd, ARGV[0])
 
 res = TGE.new.qsub(pid, shell_path)
-if res==0
+#p ['qsub_status', res, pid]
+if res
   exit 0
 else
   exit 1
