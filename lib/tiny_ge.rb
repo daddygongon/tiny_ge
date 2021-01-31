@@ -11,21 +11,12 @@ class TGE
     @q_file = VE_TEST_FILE
     @data = YAML.load(File.read(@q_file))
   end
+
   def add_job(pid, shell_path)
     @data << {pid: pid, status: 'waiting', shell_path: shell_path, submit: Time.now, start: nil}
     File.write(VE_TEST_FILE, YAML.dump(@data))
-    p shell_path
     shell_file = "./test.sh"
-    shell_script = <<-EOS
-#!/bin/sh
-while ! qsub #{pid}; do
-  sleep 10
-done
-
-sh #{shell_path}
-
-qfinish #{pid}
-EOS
+    shell_script = mk_shell_script(pid, shell_path)
     File.write(shell_file, shell_script)
     p pid0 = spawn("sh #{shell_file}", :out => "test.out", :err => "test.err")
     Process.detach(pid0)
@@ -97,5 +88,19 @@ EOS
       puts "%5d: %10s: %s" % [job[:pid], job[:status], job[:shell_path]]
     end
   end
+
+    def mk_shell_script(pid, shell_path)
+    return <<~EOS
+    #!/bin/sh
+    while ! qsub #{pid}; do
+      sleep 10
+      done
+
+      sh #{shell_path}
+
+      qfinish #{pid}
+EOS
+    end
+
 end
 

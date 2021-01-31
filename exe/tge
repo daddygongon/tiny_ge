@@ -1,7 +1,12 @@
 #!/usr/bin/env ruby
 
 str = <<-EOF
-hello
+tge : tiny GE is a tiny queue system like SGE
+
+qsub [shell]        # submit job
+qstat               # show queue stats
+qdel [pid]          # delete job
+qfinish             # use internal
 EOF
 
 puts str
