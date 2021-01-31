@@ -13,14 +13,21 @@ class TGE
   end
 
   def add_job(pid, shell_path)
-    @data << {pid: pid, status: 'waiting', shell_path: shell_path, submit: Time.now, start: nil}
-    File.write(VE_TEST_FILE, YAML.dump(@data))
     shell_file = "./test.sh"
     shell_script = mk_shell_script(pid, shell_path)
     File.write(shell_file, shell_script)
+
     p pid0 = spawn("sh #{shell_file}", :out => "test.out", :err => "test.err")
     Process.detach(pid0)
     puts "#{pid} is added on the queue."
+
+    @data << {pid: pid, status: 'waiting', shell_path: shell_path,
+      real_pid: pid0,
+      submit: Time.now,
+      start: nil,
+      finish: nil
+    }
+    File.write(VE_TEST_FILE, YAML.dump(@data))
   end
 
   def change_job_status(pid, status)
@@ -74,6 +81,7 @@ class TGE
     end
     @data.each_with_index do |job, i|
       if job[:pid] == pid
+        res = command_line("kill -9 #{job[:real_pid]}")
         @data.delete_at(i)
         File.write(VE_TEST_FILE, YAML.dump(@data))
         puts "#{pid} is deleted from the qeueu."
@@ -85,7 +93,8 @@ class TGE
   def qstat(item_num=0)
     @data = YAML.load(File.read(VE_TEST_FILE))
     @data[item_num..-1].each do |job, i|
-      puts "%5d: %10s: %s" % [job[:pid], job[:status], job[:shell_path]]
+      real_pid = job[:real_pid] || 0
+      puts "%5d: %5d: %10s: %s" % [job[:pid], real_pid, job[:status], job[:shell_path]]
     end
   end
 
@@ -94,11 +103,11 @@ class TGE
     #!/bin/sh
     while ! qsub #{pid}; do
       sleep 10
-      done
+    done
 
-      sh #{shell_path}
+    sh #{shell_path}
 
-      qfinish #{pid}
+    qfinish #{pid}
 EOS
     end
 
