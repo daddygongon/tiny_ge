@@ -10,11 +10,10 @@
 #+TWITTER: off
 # +SETUPFILE: ~/.emacs.d/org-mode/theme-readtheorg.setup
 
-* name
 tiny_ge is a tiny grid engine like SGE
 
-* Tiny GE
-Similar interface with SGE.
+* Usage
+tiny_ge has a similar interface with SGE.
 #+begin_example
 > tge --help
 
@@ -37,8 +36,7 @@ sh /home/.../ve_lock_vasp.sh
 
 qfinish 23520
 #+end_src
-
-The queue is stored in ~/.tge_test_jobs.txt as YAML format.
+The job is queued in ~/.tge_test_jobs.txt as YAML format.
 
 qstat will show the status like 'running'.
 #+begin_example shell
