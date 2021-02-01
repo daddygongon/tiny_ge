@@ -1,0 +1,8 @@
+#!/bin/sh
+while ! qsub 27624; do
+  sleep 10
+done
+
+sh /home/bob/tiny_ge/test/hello_world.sh
+
+qfinish 27624
