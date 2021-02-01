@@ -1,6 +1,6 @@
 #+OPTIONS: ^:{}
 #+STARTUP: indent nolineimages
-#+TITLE: tiny grid engine
+#+TITLE: tiny_ge
 #+AUTHOR: Shigeto R. Nishitani
 #+EMAIL:     (concat "shigeto_nishitani@mac.com")
 #+LANGUAGE:  jp
@@ -10,7 +10,7 @@
 #+TWITTER: off
 # +SETUPFILE: ~/.emacs.d/org-mode/theme-readtheorg.setup
 
-tiny_ge is a tiny grid engine like SGE
+tiny_ge is a tiny grid engine like SGE.
 
 * Usage
 tiny_ge has a similar interface with SGE.
@@ -48,4 +48,7 @@ qstat will show the status like 'running'.
 18648: 18678:    running: /home/test2/ve_lock_vasp.sh
 #+end_example
 
+You may write the job in ve_lock_vasp.sh,
+then the queue system will wait the finish of previous job
+and will run the job.
 
