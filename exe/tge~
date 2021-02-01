@@ -1,8 +1,0 @@
-#!/usr/bin/env ruby
-
-str = <<- EOF
-hello
-EOF
-
-puts str
-

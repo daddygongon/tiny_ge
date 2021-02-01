@@ -1,6 +1,0 @@
-#!/usr/bin/env ruby
-
-require "tiny_ge"
-
-TGE::qstat
-
