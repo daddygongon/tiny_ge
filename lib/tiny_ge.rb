@@ -8,6 +8,8 @@ VE_TEST_FILE = File.join(ENV['HOME'],".tge_test_jobs.txt")
 
 class TGE
   def initialize(q_file=VE_TEST_FILE)
+    p q_file
+    command_line("touch #{q_file}") unless File.exist?(q_file)
     @q_file = VE_TEST_FILE
     @data = YAML.load(File.read(@q_file))
   end
