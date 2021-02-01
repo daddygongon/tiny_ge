@@ -95,6 +95,8 @@ class TGE
   end
 
   def qstat(item_num=0)
+    if item_num == '-f'
+      item_num 
     @data = YAML.load(File.read(VE_TEST_FILE))
     @data[item_num..-1].each do |job, i|
       real_pid = job[:real_pid] || 0
