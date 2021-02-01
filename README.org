@@ -22,7 +22,48 @@ necのVector Engineでmpirunを投げるとそのまま行っちゃう．
 統一ファイルを用意して，そこにveにsubmitしたjobのstatusを記録し，
 そこから排他処理と実行を行う．
 
-* 実装
+* Tiny GE
+次節の改善案にしたがってgemで実装．
+SGEのコマンドに似せて作成．
+- [[https://rubygems.org/gems/tiny_ge]]
+- [[https://github.com/daddygongon/tiny_ge]]
+
+#+begin_example
+> tge --help
+
+qsub [shell]        # submit shell job
+qstat               # show queue status
+qdel [pid]          # delete job
+qfinish [pid]       # finish forcely
+#+end_example
+
+shellを指定してqsubすると以下のtest.shが作成される．
+#+begin_src shell
+> cat test.sh
+#!/bin/sh
+while ! qsub 23520; do
+  sleep 10
+done
+
+sh /home/.../ve_lock_vasp.sh
+
+qfinish 23520
+#+end_src
+
+defaultでは~/.tge_test_jobs.txtにqueueがYAML形式で保存されている．
+
+qstatで'running'などの状況を確認．
+#+begin_example shell
+> qstat
+11670: 11702:   finished: /home/bob/tiny_ge/test/hello_world.sh
+14735: 14764:   finished: /home/bob/tiny_ge/test/hello_world.sh
+18515: 18545:   finished: /home/bob/frenkel_aurora/00_1000_10/ve_lock_vasp.sh
+29533: 29562:   finished: /home/bob/frenkel_aurora/00_1000_10/ve_lock_vasp.sh
+18648: 18678:    running: /home/bob/frenkel_aurora/00_1000_10/ve_lock_vasp.sh
+#+end_example
+
+
+* 実装の途中段階
 ** 最初の提案
 例えば、ロックファイルを作るのはどうでしょうか？
 #+begin_src shell
@@ -41,7 +82,6 @@ rm "${HOME}/.running"
 これをバックグラウンドで実行すればVEに複数ジョブが一度に入ることはなくなります。
 
 - 実行順は保証されません。
-
 ** 最初の実装
 home directory配下にファイルを用意してそこにstatus([finished, running, waiting])を
 書き込んでそれを参照してjobを実行する．
@@ -97,47 +137,7 @@ railsとかtest用にいくつも開発されている．
 - [[https://blog.appsignal.com/2019/04/02/background-processing-system-in-ruby.html][Ruby Magic Learning by building, a Background Processing System in Ruby]]
 ただ，難しそう．．．
 
-
-* Tiny GE
-次節の改善案にしたがってgemで実装．
-SGEのコマンドに似せて作成．
-
-
-#+begin_example
-> tge --help
-
-qsub [shell]        # submit shell job
-qstat               # show queue status
-qdel [pid]          # delete job
-qfinish [pid]       # finish forcely
-#+end_example
-
-shellを指定してqsubすると以下のtest.shが作成される．
-#+begin_src shell
-> cat test.sh
-#!/bin/sh
-while ! qsub 23520; do
-  sleep 10
-done
-
-sh /home/.../ve_lock_vasp.sh
-
-qfinish 23520
-#+end_src
-
-defaultでは~/.tge_test_jobs.txtにqueueがYAML形式で保存されている．
-
-qstatで'running'などの状況を確認．
-#+begin_example shell
-> qstat
-11670: 11702:   finished: /home/bob/tiny_ge/test/hello_world.sh
-14735: 14764:   finished: /home/bob/tiny_ge/test/hello_world.sh
-18515: 18545:   finished: /home/bob/frenkel_aurora/00_1000_10/ve_lock_vasp.sh
-29533: 29562:   finished: /home/bob/frenkel_aurora/00_1000_10/ve_lock_vasp.sh
-18648: 18678:    running: /home/bob/frenkel_aurora/00_1000_10/ve_lock_vasp.sh
-#+end_example
-
-* 改善案
+** 改善案
 - [X] テキストにして置いておくより，yamlかjsonが良さそう．
     見にくいけれど，間違いがないだろうから．
 - [X] qsubを常駐させて，そこにsubmitするという手はないか？
