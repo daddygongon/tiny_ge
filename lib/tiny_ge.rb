@@ -7,11 +7,15 @@ require 'command_line/global'
 VE_TEST_FILE = File.join(ENV['HOME'],".tge_test_jobs.txt")
 
 class TGE
-  def initialize(q_file=VE_TEST_FILE)
-    p q_file
-    command_line("touch #{q_file}") unless File.exist?(q_file)
-    @q_file = VE_TEST_FILE
+  def initialize(line=0)
+    @q_file =VE_TEST_FILE
+    command_line("touch #{@q_file}") unless File.exist?(@q_file)
     @data = YAML.load(File.read(@q_file))
+    unless @data
+      @data = []
+      puts 'no data'
+      return
+    end
   end
 
   def add_job(pid, shell_path)
@@ -97,7 +101,6 @@ class TGE
   end
 
   def qstat(item_num=0)
-    @data = YAML.load(File.read(VE_TEST_FILE))
     @data[item_num..-1].each do |job, i|
       real_pid = job[:real_pid] || 0
       puts "%5d: %5d: %10s: %s" % [job[:pid], real_pid, job[:status], job[:shell_path]]

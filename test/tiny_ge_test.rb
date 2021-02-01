@@ -1,19 +1,19 @@
 require_relative  "./test_helper"
 require 'command_line/global'
 
-#VE_TEST_FILE = File.join(ENV['HOME'],".tge_test_jobs.txt")
+VE_MINITEST_FILE = File.join(Dir.pwd,"test_jobs.yaml")
 
 class TGETest < Minitest::Test
   def setup
     @pid = $$
-    @tge = TGE.new
+    @tge = TGE.new(VE_MINITEST_FILE)
   end
   def test_it_has_a_version_number
     refute_nil TGE::VERSION
   end
 
   def test_it_has_the_jobs_file
-    assert File.exist?(VE_TEST_FILE)
+    assert File.exist?(VE_MINITEST_FILE)
   end
 
   def test_qsub_pid_not_on_file_return_false_add_new_on_file
