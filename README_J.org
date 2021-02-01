@@ -1,0 +1,190 @@
+#+qiita_private: 79491472592ae821dcdc
+#+OPTIONS: ^:{}
+#+STARTUP: indent nolineimages
+#+TITLE: linuxでprocessの排他処理
+#+AUTHOR: Shigeto R. Nishitani
+#+EMAIL:     (concat "shigeto_nishitani@mac.com")
+#+LANGUAGE:  jp
+# +OPTIONS:   H:4 toc:t num:2
+#+OPTIONS:   toc:nil
+#+TAG: Linux, 排他処理
+#+TWITTER: off
+# +SETUPFILE: ~/.emacs.d/org-mode/theme-readtheorg.setup
+
+* intro
+necのvector engineでprocessを排他処理する．
+
+necのVector Engineでmpirunを投げるとそのまま行っちゃう．
+そこでlock fileによる排他処理を提案されたが，そのままだと順序が保証できない．
+そこんとこちょっと改善
+
+* 方針
+統一ファイルを用意して，そこにveにsubmitしたjobのstatusを記録し，
+そこから排他処理と実行を行う．
+
+* Tiny GE
+次節の改善案にしたがってgemで実装．
+- [[https://rubygems.org/gems/tiny_ge]]
+- [[https://github.com/daddygongon/tiny_ge]]
+
+SGEのコマンドに似せたCLI.
+#+begin_example
+> tge --help
+
+qsub [shell]        # submit shell job
+qstat               # show queue status
+qdel [pid]          # delete job
+qfinish [pid]       # finish forcely
+#+end_example
+
+shellを指定してqsubすると以下のtest.shが作成される．
+#+begin_src shell
+> qsub ve_lock_vasp.sh
+> cat test.s23520
+#!/bin/sh
+while ! qsub 23520; do
+  sleep 10
+done
+
+sh /home/.../ve_lock_vasp.sh
+
+qfinish 23520
+#+end_src
+
+defaultでは~/.tge_test_jobs.txtにqueueがYAML形式で保存されている．
+
+qstatで'running'などの状況を確認．
+#+begin_example shell
+> qstat
+11670: 11702:   finished: /home/test/hello_world.sh
+14735: 14764:   finished: /home/test/hello_world.sh
+18515: 18545:   finished: /home/test2/ve_lock_vasp.sh
+29533: 29562:   finished: /home/test2/ve_lock_vasp.sh
+18648: 18678:    running: /home/test2/ve_lock_vasp.sh
+#+end_example
+
+
+* 実装の途中段階
+** 最初の提案
+例えば、ロックファイルを作るのはどうでしょうか？
+#+begin_src shell
+#!/bin/sh
+
+while [ -f "${HOME}/.running" ]; do
+  sleep 10
+done
+touch "${HOME}/.running"
+
+[...]
+mpirun -np 8 vasp_std 1> stdout 2> stderr
+
+rm "${HOME}/.running"
+#+end_src
+これをバックグラウンドで実行すればVEに複数ジョブが一度に入ることはなくなります。
+
+- 実行順は保証されません。
+** 最初の実装
+home directory配下にファイルを用意してそこにstatus([finished, running, waiting])を
+書き込んでそれを参照してjobを実行する．
+
+それぞれの投入ジョブのshellは次の通り．
+#+name: check_ve.sh
+#+include: "./test/check_ve.sh" src sh
+
+実際の稼働shellは以下の二つ．
+#+name: check_ve_lock
+#+include: "./lib/check_ve_lock" src ruby
+
+#+name: unlock_ve_lock
+#+include: "./lib/unlock_ve_lock" src ruby
+動いた．
+#+begin_example
+   12753:   finished: /home/bob/bin: 2021-01-26 20:45:56 +0900
+   13209:   finished: /home/bob/bin: 2021-01-26 20:46:05 +0900
+   13407:   finished: /home/bob/bin: 2021-01-26 20:46:14 +0900
+    8512:   finished: /home/bob/frenkel_aurora/al_110_lambda_05: 2021-01-26 23:37:06 +0900
+   20683:    running: /home/bob/frenkel_aurora/al_110_lambda_075: 2021-01-26 23:48:25 +0900
+#+end_example
+** rubyからbackgroundでの実行
+- [[https://stackoverflow.com/questions/11982057/how-can-i-trigger-a-shell-script-and-run-in-background-async-in-ruby][How can I trigger a shell script and run in background (async) in Ruby?]]
+
+に書かれている手法で，
+#+begin_src ruby
+    shell_file = "./test.sh"
+    File.write(shell_file, "sleep 10\necho \"hoge\"\n")
+    command_line("chmod u+x #{shell_file}")
+    p pid = spawn(shell_file, :out => "test.out", :err => "test.err")
+    Process.detach(pid)
+#+end_src
+にて実装．
+
+結果は，
+#+begin_example
+> ls -la --time-style=full-iso test*
+-rw-r--r--. 1 bob bob   0 2021-01-29 12:12:29.572812565 +0900 test.err
+-rw-r--r--. 1 bob bob   5 2021-01-29 12:12:39.575812241 +0900 test.out
+-rwxrw-r--. 1 bob bob  21 2021-01-29 12:12:29.571812565 +0900 test.sh*
+-rw-rw-r--. 1 bob bob 155 2021-01-28 10:01:57.380865004 +0900 test_helper.rb
+#+end_example
+となり，10秒後に書き込まれているのを確認．outファイルは実行直後に出来てたみたい．
+chmodが嫌ですね．
+でも，変なpermissionいらないからuser directoryで実行するshellを生成するのが良さそう．
+
+前回これを実装しようとして，child processとかで悩んだ．
+
+この検索過程で，gemでqueueシステムをいくつも発見．
+railsとかtest用にいくつも開発されている．
+- [[https://www.ruby-toolbox.com/categories/Background_Jobs]]
+- [[https://blog.appsignal.com/2019/04/02/background-processing-system-in-ruby.html][Ruby Magic Learning by building, a Background Processing System in Ruby]]
+ただ，難しそう．．．
+
+** 改善案
+- [X] テキストにして置いておくより，yamlかjsonが良さそう．
+    見にくいけれど，間違いがないだろうから．
+- [X] qsubを常駐させて，そこにsubmitするという手はないか？
+   1. 常駐させる必要はなくて，qsubに対してve_lock用のshellを常駐させればいい．
+   1. /tmpにおく？
+- [ ] 走ってないゾンビをチェックする必要あり
+- [X] qstat, qdelが必要
+
+- [X] gem化するのが良さそう．そこでは
+     : exeに個別のコマンドを用意するが，実体は同じclassの違う振る舞い
+     とすればいい．
+
+- [X] qsub -> TGE.qsub(pid, shell_path)
+- [X] qfinish -> TGE.qfinish(pid)
+- [X] qstat -> TGE.qstat(line = 10)
+- [X] qdel -> TGE.qdel(pid)
+なんかのmodule methodを用意して，それぞれのコマンドを実行させればいい．
+それにはThorなんかのCLIはいらない．
+
+* テスト
+- [[https://github.com/minitest-reporters/minitest-reporters][minitest-reporters]]
+
+** test_helperの呼び方
+rake testでやるときと，
+: ruby tiny_ge_test.rb -n test_qsub
+とかでやるときでtest_helperが呼ばれない時がある．
+
+: require_relative "./test_helper"
+
+とすると両方で呼ばれる．
+
+#+name: test_helper.rb
+#+begin_ruby
+$LOAD_PATH.unshift(File.expand_path('../../lib', __FILE__))
+#require 'test/unit'
+require "tiny_ge"
+
+require "minitest/autorun"
+require "minitest/reporters"
+Minitest::Reporters.use!
+#+end_ruby
+- qconf
+- かきこ
+** kill zombie
+開発の段階でzombie processの大量発生が起こった．
+
+:  ps -xal |grep test.sh
+とかで親プロセスまで見ることができて．殺せる．
+第４出力が親プロセス．
