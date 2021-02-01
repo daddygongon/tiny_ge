@@ -24,10 +24,10 @@ necのVector Engineでmpirunを投げるとそのまま行っちゃう．
 
 * Tiny GE
 次節の改善案にしたがってgemで実装．
-SGEのコマンドに似せて作成．
 - [[https://rubygems.org/gems/tiny_ge]]
 - [[https://github.com/daddygongon/tiny_ge]]
 
+SGEのコマンドに似せたCLI.
 #+begin_example
 > tge --help
 
@@ -39,7 +39,8 @@ qfinish [pid]       # finish forcely
 
 shellを指定してqsubすると以下のtest.shが作成される．
 #+begin_src shell
-> cat test.sh
+> qsub ve_lock_vasp.sh
+> cat test.s23520
 #!/bin/sh
 while ! qsub 23520; do
   sleep 10
@@ -55,11 +56,11 @@ defaultでは~/.tge_test_jobs.txtにqueueがYAML形式で保存されている�
 qstatで'running'などの状況を確認．
 #+begin_example shell
 > qstat
-11670: 11702:   finished: /home/bob/tiny_ge/test/hello_world.sh
-14735: 14764:   finished: /home/bob/tiny_ge/test/hello_world.sh
-18515: 18545:   finished: /home/bob/frenkel_aurora/00_1000_10/ve_lock_vasp.sh
-29533: 29562:   finished: /home/bob/frenkel_aurora/00_1000_10/ve_lock_vasp.sh
-18648: 18678:    running: /home/bob/frenkel_aurora/00_1000_10/ve_lock_vasp.sh
+11670: 11702:   finished: /home/test/hello_world.sh
+14735: 14764:   finished: /home/test/hello_world.sh
+18515: 18545:   finished: /home/test2/ve_lock_vasp.sh
+29533: 29562:   finished: /home/test2/ve_lock_vasp.sh
+18648: 18678:    running: /home/test2/ve_lock_vasp.sh
 #+end_example
 
 
