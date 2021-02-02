@@ -22,4 +22,6 @@ end
 $pids = [pid]
 find_child_process_recursively(pid)
 
-$pids.uniq.each do |pid| puts "kill -9 #{pid}" end
+$pids.uniq.each do |pid|
+  command_line "kill -9 #{pid}"
+end

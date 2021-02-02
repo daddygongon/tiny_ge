@@ -41,7 +41,7 @@ class TGE
   end
 
   def add_job(pid, shell_path)
-    shell_name = File.basename(shell_path)
+    shell_name = File.basename(shell_path,'.sh')
     shell_file = "./#{shell_name}.s#{pid}"
     shell_script = mk_shell_script(pid, shell_path)
     File.write(shell_file, shell_script)
@@ -97,10 +97,10 @@ class TGE
     end
     @data.each_with_index do |job, i|
       if job[:pid] == pid
+        kill_all_child_process(job[:real_pid])
         res = command_line("kill -9 #{job[:real_pid]}")
         p res
         # @data.delete_at(i)
-        kill_all_child_process(job[:real_pid])
         change_job_status(pid, 'deleted')
         File.write(VE_TEST_FILE, YAML.dump(@data))
         puts "#{pid} is deleted from the qeueu."
