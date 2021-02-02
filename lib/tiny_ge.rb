@@ -1,4 +1,5 @@
 require "tiny_ge/version"
+require "tiny_ge/child_process"
 require 'yaml'
 require 'thor'
 require 'command_line/global'
@@ -7,6 +8,7 @@ require 'command_line/global'
 VE_TEST_FILE = File.join(ENV['HOME'],".tge_test_jobs.txt")
 
 class TGE
+  include ChildProcess
   def initialize(line=0)
     @q_file =VE_TEST_FILE
     command_line("touch #{@q_file}") unless File.exist?(@q_file)
@@ -78,9 +80,9 @@ class TGE
       if job[:status] == 'finished' or
           job[:status] == 'deleted'
         last_finished = i
+      end
     end
   end
-
   def pid_on_file(pid)
     @data.each do |job, i|
       return job[:status] if job[:pid] == pid
@@ -88,8 +90,6 @@ class TGE
     return false
   end
 
-  require "./kill_child_process"
-  
   def qdel(pid)
     unless pid_on_file(pid)
       puts "#{pid} is not on the qeueu."
@@ -104,7 +104,7 @@ class TGE
         change_job_status(pid, 'deleted')
         File.write(VE_TEST_FILE, YAML.dump(@data))
         puts "#{pid} is deleted from the qeueu."
-        
+
         return true
       end
     end
@@ -122,13 +122,13 @@ class TGE
     #!/bin/sh
     while ! qsub #{pid}; do
       sleep 10
-    done
+      done
 
-    sh #{shell_path}
+      sh #{shell_path}
 
-    qfinish #{pid}
-EOS
+      qfinish #{pid}
+      EOS
+    end
+
   end
-
-end
 
