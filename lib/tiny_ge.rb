@@ -18,24 +18,6 @@ class TGE
     end
   end
 
-  def add_job(pid, shell_path)
-    shell_file = "./test.s#{pid}"
-    shell_script = mk_shell_script(pid, shell_path)
-    File.write(shell_file, shell_script)
-
-    p pid0 = spawn("sh #{shell_file}", :out => "test.o#{pid}", :err => "test.e#{pid}")
-    Process.detach(pid0)
-    puts "#{pid} is added on the queue."
-
-    @data << {pid: pid, status: 'waiting', shell_path: shell_path,
-      real_pid: pid0,
-      submit: Time.now,
-      start: nil,
-      finish: nil
-    }
-    File.write(VE_TEST_FILE, YAML.dump(@data))
-  end
-
   def change_job_status(pid, status)
     @data.each do |job, i|
       if job[:pid] == pid
@@ -43,6 +25,7 @@ class TGE
         case status
         when 'running' ;  job[:start] = Time.now
         when 'finished';  job[:finish] = Time.now
+        when 'deleted' ;  job[:finish] = Time.now
         end
         File.write(VE_TEST_FILE, YAML.dump(@data))
         break
@@ -55,8 +38,28 @@ class TGE
     return true
   end
 
+  def add_job(pid, shell_path)
+    shell_name = File.basename(shell_path)
+    shell_file = "./#{shell_name}.s#{pid}"
+    shell_script = mk_shell_script(pid, shell_path)
+    File.write(shell_file, shell_script)
+
+    p pid0 = spawn("sh #{shell_file}", :out => "#{shell_name}.o#{pid}", :err => "#{shell_name}.e#{pid}")
+    Process.detach(pid0)
+    puts "#{pid} is added on the queue."
+
+    @data << {pid: pid, status: 'waiting', shell_path: shell_path,
+      real_pid: pid0,
+      submit: Time.now,
+      start: nil,
+      finish: nil
+    }
+    File.write(VE_TEST_FILE, YAML.dump(@data))
+  end
+
   def qsub(pid, shell_path=Dir.pwd)
     unless pid_on_file(pid)
+      pid = @data.size
       add_job(pid, shell_path)
       return false
     end
@@ -72,7 +75,9 @@ class TGE
         end
         return false
       end
-      last_finished = i if job[:status] == 'finished'
+      if job[:status] == 'finished' or
+          job[:status] == 'deleted'
+        last_finished = i
     end
   end
 
@@ -83,6 +88,8 @@ class TGE
     return false
   end
 
+  require "./kill_child_process"
+  
   def qdel(pid)
     unless pid_on_file(pid)
       puts "#{pid} is not on the qeueu."
@@ -92,9 +99,12 @@ class TGE
       if job[:pid] == pid
         res = command_line("kill -9 #{job[:real_pid]}")
         p res
-        @data.delete_at(i)
+        # @data.delete_at(i)
+        kill_all_child_process(job[:real_pid])
+        change_job_status(pid, 'deleted')
         File.write(VE_TEST_FILE, YAML.dump(@data))
         puts "#{pid} is deleted from the qeueu."
+        
         return true
       end
     end

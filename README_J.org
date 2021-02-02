@@ -138,6 +138,45 @@ railsとかtest用にいくつも開発されている．
 - [[https://blog.appsignal.com/2019/04/02/background-processing-system-in-ruby.html][Ruby Magic Learning by building, a Background Processing System in Ruby]]
 ただ，難しそう．．．
 
+** find child process
+親プロセスを殺しただけでは，子プロセスは動いたまま．
+そこでそれらを再帰的に見つけて殺すプログラムを実装．
+
+#+name: kill_child_prcess.rb
+#+include: "./test/kill_child_process.rb" src ruby
+
+#+begin_example shell
+> ruby kill_child_process.rb
+0  1000 13961 13931  20   0  11004  3116 -      S    ?          0:00 sh /home/bob/frenkel_aurora/lambda_10/ve_lock_vasp.sh
+0  1000 13998 13961  20   0 302264 15372 x64_sy Sl   ?          0:00 ruby ../bin/frenkel.rb vasp 8 1.0 1000 3 1.0 513
+0  1000 19301 13998  20   0   4488   768 -      S    ?          0:00 mpirun -np 8 /home/nec/release20210125/vasp.5.4.4/bin/vasp_std
+0  1000 19302 19301  20   0 186784  5256 core_s Ss   ?          0:00 mpid
+0  1000 19308 19302  20   0 1090611052 189368 - S    ?          0:00 /opt/nec/ve/libexec/ve_exec -d /dev/veslot0 -s /var/
+0  1000 19309 19302  20   0 1090596356 221076 - S    ?          0:00 /opt/nec/ve/libexec/ve_exec -d /dev/veslot0 -s /var/
+...
+kill -9 13931
+kill -9 13961
+kill -9 13998
+kill -9 19301
+...
+#+end_example
+
+これをqdelに入れるか，qfinishに入れるかで悩む．
+- qdelは'wait' -> delete
+- qfinishは'running' -> 'finished'
+なんで，'deleted'を作るか．そうすればqfinishはqdelと合体できる．
+
+** pidをqueueの連番に変える
+pidを親プロセスのpidからqueueの番号に変更．
+
+それに伴って，unique nessを保証するため，
+deleteでデータを消すのをやめて，
+'deleted'と打つことにした．
+
+それに伴ってfinished あるいはdeletedが
+next processの判断基準とした．
+
+
 ** 改善案
 - [X] テキストにして置いておくより，yamlかjsonが良さそう．
     見にくいけれど，間違いがないだろうから．
