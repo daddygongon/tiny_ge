@@ -62,33 +62,21 @@ class TGE
     File.write(VE_TEST_FILE, YAML.dump(@data))
   end
 
-  def check_running
-    @data.each_with_index do |job, i|
-      return true if job[:status] == 'running'
-    end
-    return false
-  end
-
   def qsub(pid, shell_path=Dir.pwd)
     unless pid_on_file(pid)
-      pid = @data.size
-      add_job(pid, shell_path)
+      add_job(@data.size, shell_path)
       return false
     end
 
-    return false if check_running
-
     @data.each do |job|
-      if job[:pid] == pid
-        if job[:status] == 'waiting'
-          change_job_status(pid, 'running')
-          return true
-        end
-        return false
+      if job[:pid] == pid and job[:status] == 'waiting'
+        change_job_status(pid, 'running')
+        return true
       end
-      return false if job[:status] == 'waiting'
+      return false if job[:status] == 'waiting' or job[:status] == 'running'
     end
   end
+
   def pid_on_file(pid)
     @data.each do |job, i|
       return job[:status] if job[:pid] == pid

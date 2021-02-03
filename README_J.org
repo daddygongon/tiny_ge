@@ -176,6 +176,14 @@ deleteでデータを消すのをやめて，
 それに伴ってfinished あるいはdeletedが
 next processの判断基準とした．
 
+** qsubのロジック変更
+finished, deletedの次としていたらすぐにrunningが始まって失敗．
+running, waitingあるかないかで判断．
+
+- shell jobならばqueueに登録
+- そうでなければpidとみなして，
+  - running, waitingが一つでもあればまて(return false)．
+  - なければ進め(change status and return true)
 
 ** 改善案
 - [X] テキストにして置いておくより，yamlかjsonが良さそう．
