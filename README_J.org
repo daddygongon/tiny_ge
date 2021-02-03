@@ -142,8 +142,8 @@ railsとかtest用にいくつも開発されている．
 親プロセスを殺しただけでは，子プロセスは動いたまま．
 そこでそれらを再帰的に見つけて殺すプログラムを実装．
 
-#+name: kill_child_prcess.rb
-#+include: "./test/kill_child_process.rb" src ruby
+#+name: lib/tiny_ge/child_prcess.rb
+#+include: "lib/tiny_ge/child_process.rb" src ruby
 
 #+begin_example shell
 > ruby kill_child_process.rb
@@ -173,8 +173,7 @@ pidを親プロセスのpidからqueueの番号に変更．
 deleteでデータを消すのをやめて，
 'deleted'と打つことにした．
 
-それに伴ってfinished あるいはdeletedが
-next processの判断基準とした．
++それに伴ってfinished あるいはdeletedがnext processの判断基準とした．+
 
 ** qsubのロジック変更
 finished, deletedの次としていたらすぐにrunningが始まって失敗．
