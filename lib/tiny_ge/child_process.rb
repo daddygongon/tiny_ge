@@ -2,7 +2,7 @@ require 'command_line/global'
 
 module ChildProcess
   def find_child_process_recursively(pid)
-    $data.each do |item|
+    $ps_data.each do |item|
       next if item==nil
       if item[4] == pid
         puts item[0]
@@ -14,10 +14,7 @@ module ChildProcess
   end
 
   def kill_all_child_process(pid)
-    #pid = ARGV[0] || '13931'
-
-    # store jobs in $data
-    $data = command_line('ps -xal').stdout.split("\n").inject([]) do |dd, line|
+    $ps_data = command_line('ps -xal').stdout.split("\n").inject([]) do |dd, line|
       dd << line.match(/^(\d+)\s+(\d+)\s+(\d+)\s+(\d+)(.+)/)
     end
 
@@ -25,7 +22,8 @@ module ChildProcess
     find_child_process_recursively(pid)
 
     $pids.uniq.each do |pid|
-      command_line "kill -9 #{pid}"
+      puts com = "kill -9 #{pid}"
+      command_line com
     end
   end
 end
