@@ -169,19 +169,19 @@ kill -9 19301
 ** pidをqueueの連番に変える
 pidを親プロセスのpidからqueueの番号に変更．
 
-それに伴って，unique nessを保証するため，
-deleteでデータを消すのをやめて，
-'deleted'と打つことにした．
+それに伴って，idのuniquenessを保証するため，
+deleteでデータを直接消すのをやめて，
+'deleted'状態として保持することにした．
 
 +それに伴ってfinished あるいはdeletedがnext processの判断基準とした．+
 
 ** qsubのロジック変更
 finished, deletedの次としていたらすぐにrunningが始まって失敗．
-running, waitingあるかないかで判断．
+他のrunning, waitingがあるかないかで判断．
 
 - shell jobならばqueueに登録
 - そうでなければpidとみなして，
-  - running, waitingが一つでもあればまて(return false)．
+  - running, waitingが他に一つでもあれば待て(return false)．
   - なければ進め(change status and return true)
 
 ** 改善案
