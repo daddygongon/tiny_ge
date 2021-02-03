@@ -46,11 +46,14 @@ class TGE
     shell_script = mk_shell_script(pid, shell_path)
     File.write(shell_file, shell_script)
 
-    p pid0 = spawn("sh #{shell_file}", :out => "#{shell_name}.o#{pid}", :err => "#{shell_name}.e#{pid}")
+    p pid0 = spawn("sh #{shell_file}",
+                   :out => "#{shell_name}.o#{pid}",
+                   :err => "#{shell_name}.e#{pid}")
     Process.detach(pid0)
     puts "#{pid} is added on the queue."
 
-    @data << {pid: pid, status: 'waiting', shell_path: shell_path,
+    @data << {pid: pid, status: 'waiting',
+      shell_path: shell_path,
       real_pid: pid0,
       submit: Time.now,
       start: nil,
@@ -59,28 +62,31 @@ class TGE
     File.write(VE_TEST_FILE, YAML.dump(@data))
   end
 
+  def check_running
+    @data.each_with_index do |job, i|
+      return true if job[:status] == 'running'
+    end
+    return false
+  end
+
   def qsub(pid, shell_path=Dir.pwd)
     unless pid_on_file(pid)
       pid = @data.size
       add_job(pid, shell_path)
       return false
     end
-    last_finished = -1
-    @data.each_with_index do |job, i|
+
+    return false if check_running
+
+    @data.each do |job|
       if job[:pid] == pid
-        if job[:status] == 'waiting' and i == last_finished + 1
+        if job[:status] == 'waiting'
           change_job_status(pid, 'running')
-          return true
-        end
-        if job[:status] == 'running'
           return true
         end
         return false
       end
-      if job[:status] == 'finished' or
-          job[:status] == 'deleted'
-        last_finished = i
-      end
+      return false if job[:status] == 'waiting'
     end
   end
   def pid_on_file(pid)
