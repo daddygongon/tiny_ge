@@ -41,16 +41,16 @@ qfinish [pid]       # finish forcely
 ** qsub
 shellを指定してqsubすると以下のtest.shが作成される．
 #+begin_src shell
-> qsub ve_lock_vasp.sh
-> cat test.s23520
+> qsub lamda_025.sh
+> cat lamda_025.s65
 #!/bin/sh
-while ! qsub 23520; do
+while ! qsub 65; do
   sleep 10
-done
+  done
 
-sh /home/.../ve_lock_vasp.sh
+  sh /home/lamda_025.sh
 
-qfinish 23520
+  qfinish 65
 #+end_src
 
 defaultでは~/.tge_test_jobs.txtにqueueがYAML形式で保存されている．
@@ -59,12 +59,13 @@ defaultでは~/.tge_test_jobs.txtにqueueがYAML形式で保存されている�
 qstatで'running'などの状況を確認．
 #+begin_example shell
 > qstat
-11670: 11702:   finished: /home/test/hello_world.sh
-14735: 14764:   finished: /home/test/hello_world.sh
-18515: 18545:   finished: /home/test2/ve_lock_vasp.sh
-29533: 29562:   finished: /home/test2/ve_lock_vasp.sh
-18648: 18678:    running: /home/test2/ve_lock_vasp.sh
+   60:   883:    deleted: /home/lamda_025.sh
+   61:  2380:    deleted: /home/lamda_025.sh
+   62:  3799:    deleted: /home/lamda_025.sh
+   63: 26944:    deleted: /home/lamda_025.sh
+   64:  6871:    deleted: /home/lamda_025.sh
 #+end_example
+
 ** qdel
 'qdel [queue ID]' で'queue ID'とその子プロセスを再帰的にkillする．
 そして，queueのstatusを'running'あるいは'waiting'から'deleted'に変更する.

@@ -25,18 +25,18 @@ qfinish [pid]       # finish forcely
 #+end_example
 
 ** qsub
-When you qsub shell, test.s_23520 will be made.
+When you 'qsub [SHELL].sh', SHELL.s[qid] will be made.
 #+begin_src shell
-> qsub ve_lock_vasp.sh
-> cat test.s23520
+> qsub lamda_025.sh
+> cat lamda_025.s65
 #!/bin/sh
-while ! qsub 23520; do
+while ! qsub 65; do
   sleep 10
-done
+  done
 
-sh /home/.../ve_lock_vasp.sh
+  sh /home/lamda_025.sh
 
-qfinish 23520
+  qfinish 65
 #+end_src
 The job is queued in ~/.tge_test_jobs.txt as YAML format.
 
@@ -44,12 +44,11 @@ The job is queued in ~/.tge_test_jobs.txt as YAML format.
 qstat will show the status like 'running'.
 #+begin_example shell
 > qstat
-11670: 11702:   finished: /home/test/hello_world.sh
-14735: 14764:   finished: /home/test/hello_world.sh
-18515: 18545:   finished: /home/test2/ve_lock_vasp.sh
-29533: 29562:   finished: /home/test2/ve_lock_vasp.sh
-18648: 18678:    running: /home/test2/ve_lock_vasp.sh
-27624: 27654:    waiting: /home/test/hello_world.sh
+   60:   883:    deleted: /home/lamda_025.sh
+   61:  2380:    deleted: /home/lamda_025.sh
+   62:  3799:    deleted: /home/lamda_025.sh
+   63: 26944:    deleted: /home/lamda_025.sh
+   64:  6871:    deleted: /home/lamda_025.sh
 #+end_example
 
 You may write the job in ve_lock_vasp.sh,
