@@ -42,15 +42,15 @@ qfinish [pid]       # finish forcely
 shellを指定してqsubすると以下のtest.shが作成される．
 #+begin_src shell
 > qsub lamda_025.sh
-> cat lamda_025.s65
+> cat lamda_025.s64
 #!/bin/sh
-while ! qsub 65; do
+while ! qsub 64; do
   sleep 10
   done
 
   sh /home/lamda_025.sh
 
-  qfinish 65
+  qfinish 64
 #+end_src
 
 defaultでは~/.tge_test_jobs.txtにqueueがYAML形式で保存されている．
@@ -59,11 +59,11 @@ defaultでは~/.tge_test_jobs.txtにqueueがYAML形式で保存されている�
 qstatで'running'などの状況を確認．
 #+begin_example shell
 > qstat
-   60:   883:    deleted: /home/lamda_025.sh
+   60:   883:   finished: /home/lamda_025.sh
    61:  2380:    deleted: /home/lamda_025.sh
-   62:  3799:    deleted: /home/lamda_025.sh
-   63: 26944:    deleted: /home/lamda_025.sh
-   64:  6871:    deleted: /home/lamda_025.sh
+   62:  3799:   finished: /home/lamda_025.sh
+   63: 26944:    running: /home/lamda_025.sh
+   64:  6871:    waiting: /home/lamda_025.sh
 #+end_example
 
 ** qdel

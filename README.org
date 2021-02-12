@@ -28,31 +28,31 @@ qfinish [pid]       # finish forcely
 When you 'qsub [SHELL].sh', SHELL.s[qid] will be made.
 #+begin_src shell
 > qsub lamda_025.sh
-> cat lamda_025.s65
+> cat lamda_025.s64
 #!/bin/sh
-while ! qsub 65; do
+while ! qsub 64; do
   sleep 10
   done
 
   sh /home/lamda_025.sh
 
-  qfinish 65
+  qfinish 64
 #+end_src
-The job is queued in ~/.tge_test_jobs.txt as YAML format.
+The job is queued on ~/.tge_test_jobs.txt as YAML format.
 
 ** qstat
-qstat will show the status like 'running'.
+qstat shows the status like 'waiting'.
 #+begin_example shell
 > qstat
-   60:   883:    deleted: /home/lamda_025.sh
+   60:   883:   finished: /home/lamda_025.sh
    61:  2380:    deleted: /home/lamda_025.sh
-   62:  3799:    deleted: /home/lamda_025.sh
-   63: 26944:    deleted: /home/lamda_025.sh
-   64:  6871:    deleted: /home/lamda_025.sh
+   62:  3799:   finished: /home/lamda_025.sh
+   63: 26944:    running: /home/lamda_025.sh
+   64:  6871:    waiting: /home/lamda_025.sh
 #+end_example
 
-You may write the job in ve_lock_vasp.sh,
-then the queue system will wait the finish of previous job
+You may write the job in lambda_025.sh,
+then the queue system waits the finish of previous job
 and will run the waiting job.
 
 ** qdel
@@ -79,6 +79,5 @@ and will run the waiting job.
 "kill -9 2487"
 "kill -9 2488"
 "kill -9 2489"
-61 is deleted from the qeueu.
-
+qid 61 is deleted from the qeueu.
 #+end_example
