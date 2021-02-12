@@ -27,6 +27,7 @@ necのVector Engineでmpirunを投げるとそのまま行っちゃう．
 - [[https://rubygems.org/gems/tiny_ge]]
 - [[https://github.com/daddygongon/tiny_ge]]
 
+** outline
 SGEのコマンドに似せたCLI.
 #+begin_example
 > tge --help
@@ -37,6 +38,7 @@ qdel [pid]          # delete job
 qfinish [pid]       # finish forcely
 #+end_example
 
+** qsub
 shellを指定してqsubすると以下のtest.shが作成される．
 #+begin_src shell
 > qsub ve_lock_vasp.sh
@@ -53,6 +55,7 @@ qfinish 23520
 
 defaultでは~/.tge_test_jobs.txtにqueueがYAML形式で保存されている．
 
+** qstat
 qstatで'running'などの状況を確認．
 #+begin_example shell
 > qstat
@@ -61,6 +64,33 @@ qstatで'running'などの状況を確認．
 18515: 18545:   finished: /home/test2/ve_lock_vasp.sh
 29533: 29562:   finished: /home/test2/ve_lock_vasp.sh
 18648: 18678:    running: /home/test2/ve_lock_vasp.sh
+#+end_example
+** qdel
+'qdel [queue ID]' で'queue ID'とその子プロセスを再帰的にkillする．
+そして，queueのstatusを'running'あるいは'waiting'から'deleted'に変更する.
+#+begin_example shell
+> qdel 61
+0  1000  2380     1  20   0  10872  2964 -      S    pts/1      0:00 sh ./lamda_025.s61
+0  1000  2408  2380  20   0  11004  3188 -      S    pts/1      0:00 sh /home/.../lamda_025.sh
+0  1000  2885  2855  20   0  10872  3060 -      S+   pts/0      0:00 sh -c ps -xal |grep 2380
+0  1000  2890  2885  20   0  10284   984 -      S+   pts/0      0:00 grep 2380
+[2380]
+[2380, 2408, 2445, 2473, 2477, 2482, 2483, 2484, 2485, 2486, 2487, 2488, 2489]
+"kill -9 2380"
+"kill -9 2408"
+"kill -9 2445"
+"kill -9 2473"
+"kill -9 2477"
+"kill -9 2482"
+"kill -9 2483"
+"kill -9 2484"
+"kill -9 2485"
+"kill -9 2486"
+"kill -9 2487"
+"kill -9 2488"
+"kill -9 2489"
+61 is deleted from the qeueu.
+
 #+end_example
 
 

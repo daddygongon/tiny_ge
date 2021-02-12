@@ -13,6 +13,7 @@
 tiny_ge is a tiny grid engine like SGE.
 
 * Usage
+** outline
 tiny_ge has a similar interface with SGE.
 #+begin_example
 > tge --help
@@ -23,6 +24,7 @@ qdel [pid]          # delete job
 qfinish [pid]       # finish forcely
 #+end_example
 
+** qsub
 When you qsub shell, test.s_23520 will be made.
 #+begin_src shell
 > qsub ve_lock_vasp.sh
@@ -38,6 +40,7 @@ qfinish 23520
 #+end_src
 The job is queued in ~/.tge_test_jobs.txt as YAML format.
 
+** qstat
 qstat will show the status like 'running'.
 #+begin_example shell
 > qstat
@@ -53,6 +56,7 @@ You may write the job in ve_lock_vasp.sh,
 then the queue system will wait the finish of previous job
 and will run the waiting job.
 
+** qdel
 'qdel [queue ID]' delete quese id and child processes recursively,
  and change the status from 'running' or 'waiting' to 'deleted'.
 #+begin_example shell
